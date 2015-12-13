@@ -27,11 +27,9 @@ class BuildInfoPlugin implements Plugin<Project> {
         } catch (ignored) {
         }
 
-        attributes.with {
-            GitCommit = commit
-            CommittedAt = committedAt
-            BuiltAt = new Date().format("yyyy-MM-dd HH:mm:ss Z")
-        }
+        attributes["Git-Commit"] = commit
+        attributes["Committed-At"] = committedAt
+        attributes["Built-At"] = new Date().format("yyyy-MM-dd HH:mm:ss Z")
 
         (project.tasks.jar as Jar).manifest {
             it.attributes(attributes)
