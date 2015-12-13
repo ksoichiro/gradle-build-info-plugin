@@ -39,8 +39,8 @@ buildInfo {
     writeToManifest true
     writeToFile ‘meta.properties'
     attributes {
-        include attribute: ‘commit’, renameAs: ‘commitHash'
-        exclude attribute: ‘committedAt’
+        include attribute: 'commit', renameAs: 'commitHash'
+        exclude attribute: 'committedAt'
     }
 }
 ```
