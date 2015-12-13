@@ -17,7 +17,7 @@ class BuildInfoPlugin implements Plugin<Project> {
         }
     }
 
-    void mergeManifest(Project project) {
+    static void mergeManifest(Project project) {
         def attributes = [:] as Map<String, ?>
         def commit = null
         def committedAt = null
