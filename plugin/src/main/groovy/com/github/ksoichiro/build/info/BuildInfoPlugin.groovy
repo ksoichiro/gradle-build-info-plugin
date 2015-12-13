@@ -23,20 +23,20 @@ class BuildInfoPlugin implements Plugin<Project> {
     static void mergeManifest(Project project) {
         def attributes = [:] as Map<String, ?>
         def commit
-        def committedAt
+        def committerDate
         try {
             Grgit grgit = Grgit.open()
             Commit head = grgit.log(maxCommits: 1)[0]
             commit = head.abbreviatedId
-            committedAt = head.date.format("yyyy-MM-dd HH:mm:ss Z")
+            committerDate = head.date.format("yyyy-MM-dd HH:mm:ss Z")
         } catch (ignored) {
             commit = "unknown"
-            committedAt = "unknown"
+            committerDate = "unknown"
         }
 
         attributes["Git-Commit"] = commit
-        attributes["Committed-At"] = committedAt
-        attributes["Built-At"] = new Date().format("yyyy-MM-dd HH:mm:ss Z")
+        attributes["Git-Committer-Date"] = committerDate
+        attributes["Build-Date"] = new Date().format("yyyy-MM-dd HH:mm:ss Z")
 
         (project.tasks.jar as Jar).manifest {
             it.attributes(attributes)

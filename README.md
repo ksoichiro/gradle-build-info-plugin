@@ -30,21 +30,6 @@ Now your Manifest in JAR includes special attributes:
 unzip -p build/libs/yourJar.jar META-INF/Manifest.MF
 ```
 
-## Configurations
-
-You can configure some names:
-
-```gradle
-buildInfo {
-    writeToManifest true
-    writeToFile ‘meta.properties'
-    attributes {
-        include attribute: 'commit', renameAs: 'commitHash'
-        exclude attribute: 'committedAt'
-    }
-}
-```
-
 ## License
 
     Copyright 2015 Soichiro Kashima
