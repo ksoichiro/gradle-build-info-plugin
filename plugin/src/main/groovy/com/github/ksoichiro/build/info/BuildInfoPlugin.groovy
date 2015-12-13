@@ -1,5 +1,8 @@
 package com.github.ksoichiro.build.info
 
+import org.ajoberstar.grgit.Commit
+import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.operation.LogOp
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
@@ -22,8 +25,10 @@ class BuildInfoPlugin implements Plugin<Project> {
         def commit = null
         def committedAt = null
         try {
-            commit = "git rev-parse --short HEAD".execute().text.trim()
-            committedAt = "git log -n 1 --format=\"%ci\"".execute().text.trim().drop(1)[0..-2]
+            Grgit grgit = Grgit.open()
+            Commit head = grgit.log(maxCommits: 1)[0]
+            commit = head.abbreviatedId
+            committedAt = head.date.format("yyyy-MM-dd HH:mm:ss Z")
         } catch (ignored) {
         }
 
