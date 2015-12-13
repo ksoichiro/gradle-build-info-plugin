@@ -22,14 +22,16 @@ class BuildInfoPlugin implements Plugin<Project> {
 
     static void mergeManifest(Project project) {
         def attributes = [:] as Map<String, ?>
-        def commit = null
-        def committedAt = null
+        def commit
+        def committedAt
         try {
             Grgit grgit = Grgit.open()
             Commit head = grgit.log(maxCommits: 1)[0]
             commit = head.abbreviatedId
             committedAt = head.date.format("yyyy-MM-dd HH:mm:ss Z")
         } catch (ignored) {
+            commit = "unknown"
+            committedAt = "unknown"
         }
 
         attributes["Git-Commit"] = commit
