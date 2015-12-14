@@ -147,6 +147,10 @@ afterEvaluate { project ->
     publishing {
         publications {
             plugin(MavenPublication) {
+                groupId GROUP
+                artifactId POM_ARTIFACT_ID
+                version VERSION_NAME
+
                 from components.java
                 artifact sourcesJar
                 artifact javadocJar
