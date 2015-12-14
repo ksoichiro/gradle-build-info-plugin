@@ -1,0 +1,14 @@
+language: groovy
+
+jdk:
+  - openjdk6
+  - openjdk7
+  - oraclejdk8
+
+script:
+  - ./gradlew clean build check uploadArchives --full-stacktrace
+  - cd samples/example && ./gradlew clean build --full-stacktrace && cd ../../
+  - cd samples/spring-boot && ./gradlew clean build --full-stacktrace && cd ../../
+
+#after_success:
+#  - ./gradlew cobertura coveralls --full-stacktrace
