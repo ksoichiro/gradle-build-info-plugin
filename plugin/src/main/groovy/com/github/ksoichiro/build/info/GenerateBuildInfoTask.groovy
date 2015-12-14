@@ -69,14 +69,14 @@ class GenerateBuildInfoTask extends DefaultTask {
         }
     }
 
-    static GitInfo readGitInfo() {
+    GitInfo readGitInfo() {
         def branch
         def commit
         def committerDate
         try {
-            Grgit grgit = Grgit.open()
+            Grgit grgit = Grgit.open(currentDir: project.projectDir)
             branch = grgit.branch.current.name
-            Commit head = grgit.log(maxCommits: 1)[0]
+            Commit head = grgit.head()
             commit = head.abbreviatedId
             committerDate = head.date.format("yyyy-MM-dd HH:mm:ss Z")
         } catch (ignored) {
