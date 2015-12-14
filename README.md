@@ -1,5 +1,7 @@
 # gradle-build-info-plugin
 
+[![Build Status](https://travis-ci.org/ksoichiro/gradle-build-info-plugin.svg?branch=master)](https://travis-ci.org/ksoichiro/gradle-build-info-plugin)
+
 Gradle plugin to include build information to your JAR.
 
 ## Usage
