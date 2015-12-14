@@ -169,7 +169,7 @@ bintray {
         issueTrackerUrl = BINTRAY_ISSUE_TRACKER_URL
         vcsUrl = BINTRAY_VCS_URL
         licenses = ['Apache-2.0']
-        labels = ['build', 'git', 'java']
+        labels = ['build', 'git', 'java', 'spring-boot']
         publicDownloadNumbers = true
         version {
             attributes = ['gradle-plugin': 'com.github.ksoichiro.build.info:com.github.ksoichiro:gradle-build-info-plugin']
@@ -187,7 +187,7 @@ pluginBundle {
         webResourcePlugin {
             id = GRADLE_PLUGIN_ID
             displayName = POM_NAME
-            tags = ['build', 'git', 'java']
+            tags = ['build', 'git', 'java', 'spring-boot']
         }
     }
 }
