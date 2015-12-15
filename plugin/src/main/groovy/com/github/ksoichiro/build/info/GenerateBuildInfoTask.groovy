@@ -27,10 +27,13 @@ class GenerateBuildInfoTask extends DefaultTask {
     @TaskAction
     void exec() {
         if (project.plugins.hasPlugin(JavaPlugin)) {
-            if (hasDependency(project, 'org.springframework.boot', 'spring-boot-starter-actuator')) {
+            if (extension.gitPropertiesEnabled
+                || hasDependency(project, 'org.springframework.boot', 'spring-boot-starter-actuator')) {
                 generateGitProperties()
             }
-            mergeManifest()
+            if (extension.manifestEnabled) {
+                mergeManifest()
+            }
         }
     }
 
