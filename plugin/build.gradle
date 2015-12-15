@@ -209,10 +209,14 @@ pluginBundle {
     description = POM_DESCRIPTION
 
     plugins {
-        webResourcePlugin {
+        plugin {
             id = GRADLE_PLUGIN_ID
             displayName = POM_NAME
             tags = ['build', 'git', 'java', 'spring-boot']
         }
+    }
+
+    mavenCoordinates {
+        artifactId = POM_ARTIFACT_ID
     }
 }
