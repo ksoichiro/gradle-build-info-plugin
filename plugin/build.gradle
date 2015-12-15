@@ -15,6 +15,7 @@ plugins {
     id 'maven-publish'
     id "com.jfrog.bintray" version "1.2"
     id 'net.saliman.cobertura' version '2.2.8'
+    id 'com.github.kt3k.coveralls' version '2.3.1'
 }
 
 apply plugin: 'groovy'
@@ -49,6 +50,10 @@ dependencies {
     testRuntime files(createClasspathManifest)
     testCompile gradleTestKit()
     testCompile 'org.springframework.boot:spring-boot-starter-actuator:1.3.0.RELEASE'
+}
+
+cobertura {
+    coverageFormats = ['html', 'xml']
 }
 
 // To release:

@@ -9,5 +9,5 @@ script:
   - cd samples/example && ./gradlew clean build --full-stacktrace && cd ../../
   - cd samples/spring-boot && ./gradlew clean build --full-stacktrace && cd ../../
 
-#after_success:
-#  - ./gradlew cobertura coveralls --full-stacktrace
+after_success:
+  - ./gradlew cobertura coveralls --full-stacktrace
