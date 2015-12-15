@@ -80,4 +80,17 @@ class PluginTest {
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
     }
+
+    @Test
+    void configureExtension() {
+        Project project = ProjectBuilder.builder().build()
+        project.apply plugin: 'java'
+        project.apply plugin: PLUGIN_ID
+        project.buildInfo {
+            buildDateFormat 'yyyy-MM-dd'
+            committerDateFormat 'yyyy-MM-dd'
+        }
+        project.evaluate()
+        project.tasks.generateBuildInfo.execute()
+    }
 }

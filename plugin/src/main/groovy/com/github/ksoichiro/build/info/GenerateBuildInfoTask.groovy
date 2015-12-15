@@ -12,9 +12,11 @@ import org.gradle.language.jvm.tasks.ProcessResources
 
 class GenerateBuildInfoTask extends DefaultTask {
     public static final String NAME = 'generateBuildInfo'
+    BuildInfoExtension extension
 
     GenerateBuildInfoTask() {
         project.afterEvaluate {
+            extension = project.extensions.buildInfo
             if (project.plugins.hasPlugin(JavaPlugin)) {
                 dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
                 getClassesTask().dependsOn(NAME)
@@ -62,7 +64,7 @@ class GenerateBuildInfoTask extends DefaultTask {
         attributes["Git-Branch"] = gitInfo.branch
         attributes["Git-Commit"] = gitInfo.commit
         attributes["Git-Committer-Date"] = gitInfo.committerDate
-        attributes["Build-Date"] = new Date().format("yyyy-MM-dd HH:mm:ss Z")
+        attributes["Build-Date"] = new Date().format(extension.buildDateFormat)
 
         (project.tasks.jar as Jar).manifest {
             it.attributes(attributes)
@@ -78,7 +80,7 @@ class GenerateBuildInfoTask extends DefaultTask {
             branch = grgit.branch.current.name
             Commit head = grgit.head()
             commit = head.abbreviatedId
-            committerDate = head.date.format("yyyy-MM-dd HH:mm:ss Z")
+            committerDate = head.date.format(extension.committerDateFormat)
         } catch (ignored) {
             branch = "unknown"
             commit = "unknown"
