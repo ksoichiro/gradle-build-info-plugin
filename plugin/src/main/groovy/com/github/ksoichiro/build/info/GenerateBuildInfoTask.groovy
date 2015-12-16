@@ -47,18 +47,45 @@ class GenerateBuildInfoTask extends DefaultTask {
     }
 
     void generateGitProperties() {
-        def gitInfo = readGitInfo()
-        Properties props = new Properties()
-        props.putAll([
-            'git.branch'     : gitInfo.branch,
-            'git.commit.id'  : gitInfo.commit,
-            'git.commit.time': gitInfo.committerDate])
         File buildResourcesDir = getProcessResourcesTask().destinationDir
         if (!buildResourcesDir.exists()) {
             buildResourcesDir.mkdirs()
         }
+        def gitInfo = readGitInfo()
+        def map = [
+            'git.branch'     : gitInfo.branch,
+            'git.commit.id'  : gitInfo.commit,
+            'git.commit.time': gitInfo.committerDate]
+
+        // Content of git.properties should always be the same
+        // if it's generated for the same commit.
+        // However, Properties class uses Hashtable internally and output timestamp,
+        // which produces inconsistent content for the same commit.
+        // To avoid this, we can just write file by ourselves, but Properties also
+        // has "escape" feature and it's provided as private method.
+        // With Groovy, private methods can be accessed from outside of a class,
+        // but it's not a feature but just an unresolved issue,
+        // so this behaviour might be changed in the future.
+        // https://issues.apache.org/jira/browse/GROOVY-1875
+        // Therefore we write the properties file with Properties class first
+        // to create "valid" .properties file, then read it, manipulate it, and save it again.
         File propsFile = new File(buildResourcesDir, 'git.properties')
+        def props = new Properties()
+        props.putAll(map)
         props.store(propsFile.newWriter(), null)
+        def buffer = []
+        propsFile.eachLine {
+            // Timestamp line should be discarded
+            if (!it.startsWith("#")) {
+                buffer << it
+            }
+        }
+        buffer.sort(true)
+        propsFile.withWriter { w ->
+            buffer.each {
+                w.println it
+            }
+        }
     }
 
     void mergeManifest() {
