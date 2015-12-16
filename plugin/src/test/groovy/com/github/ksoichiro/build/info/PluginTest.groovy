@@ -71,7 +71,7 @@ class PluginTest {
 
     @Test
     void generateWithJavaPluginAndSpringBootActuator() {
-        Project project = ProjectBuilder.builder().build()
+        Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
         project.dependencies {
@@ -79,6 +79,7 @@ class PluginTest {
         }
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+        assertTrue(project.file("${project.buildDir}/resources/main/git.properties").exists())
     }
 
     @Test

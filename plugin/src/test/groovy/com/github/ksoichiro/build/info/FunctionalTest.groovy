@@ -10,9 +10,7 @@ import org.junit.rules.TemporaryFolder
 
 import java.util.jar.JarFile
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
+import static org.junit.Assert.*
 
 class FunctionalTest {
     private static final String PLUGIN_ID = 'com.github.ksoichiro.build.info'

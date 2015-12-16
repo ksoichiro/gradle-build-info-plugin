@@ -5,6 +5,7 @@ import org.ajoberstar.grgit.Grgit
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
@@ -95,8 +96,14 @@ class GenerateBuildInfoTask extends DefaultTask {
     }
 
     static boolean hasDependency(Project project, String group, String name) {
-        project.configurations.compile.incoming.dependencies.any {
+        project.configurations.compile.dependencies.any {
             it.group == group && it.name == name
+        } || project.configurations.compile.incoming.resolutionResult.allComponents.findAll {
+            it.getId() instanceof ModuleComponentIdentifier
+        }.collect {
+            it.getId() as ModuleComponentIdentifier
+        }.any {
+            it.group == group && it.module == name
         }
     }
 }
