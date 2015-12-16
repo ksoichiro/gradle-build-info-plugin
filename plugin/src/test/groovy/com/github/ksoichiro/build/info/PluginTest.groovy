@@ -74,6 +74,9 @@ class PluginTest {
         Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
+        project.repositories {
+            mavenCentral()
+        }
         project.dependencies {
             compile 'org.springframework.boot:spring-boot-starter-actuator:1.3.0.RELEASE'
         }
@@ -93,5 +96,20 @@ class PluginTest {
         }
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+    }
+
+    @Test
+    void transitiveDepenendency() {
+        Project project = ProjectBuilder.builder().build()
+        project.apply plugin: 'java'
+        project.apply plugin: PLUGIN_ID
+        project.repositories {
+            mavenCentral()
+        }
+        project.dependencies {
+            compile 'org.springframework.boot:spring-boot-starter-actuator:1.3.0.RELEASE'
+        }
+        project.evaluate()
+        assertTrue(GenerateBuildInfoTask.hasDependency(project, 'org.springframework', 'spring-core'))
     }
 }
