@@ -47,10 +47,9 @@ will be generated:
 
 ```
 $ cat build/resources/main/git.properties
-#Tue Dec 15 22:10:55 JST 2015
-git.commit.id=0794d59
-git.commit.time=2015-12-15 22\:07\:12 +0900
 git.branch=master
+git.commit.id=38a0c0c
+git.commit.time=2015-12-16 23\:40\:13 +0900
 ```
 
 ## Configuration
