@@ -96,6 +96,10 @@ class GenerateBuildInfoTask extends DefaultTask {
         attributes["Git-Commit"] = gitInfo.commit
         attributes["Git-Committer-Date"] = gitInfo.committerDate
         attributes["Build-Date"] = new Date().format(extension.buildDateFormat)
+        attributes["Build-Java-Version"] = System.properties['java.version']
+        attributes["Build-Java-Vendor"] = System.properties['java.vendor']
+        attributes["Build-Os-Name"] = System.properties['os.name']
+        attributes["Build-Os-Version"] = System.properties['os.version']
 
         (project.tasks.jar as Jar).manifest {
             it.attributes(attributes)
