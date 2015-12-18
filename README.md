@@ -38,9 +38,13 @@ Now your Manifest in JAR includes special attributes:
 $ unzip -p build/libs/yourJar.jar META-INF/Manifest.MF
 Manifest-Version: 1.0
 Git-Branch: master
-Git-Commit: 0794d59
-Git-Committer-Date: 2015-12-15 22:07:12 +0900
-Build-Date: 2015-12-15 22:10:55 +0900
+Git-Commit: 154f026
+Git-Committer-Date: 2015-12-17 20:05:55 +0900
+Build-Date: 2015-12-17 20:15:15 +0900
+Build-Java-Version: 1.8.0_45
+Build-Java-Vendor: Oracle Corporation
+Build-Os-Name: Mac OS X
+Build-Os-Version: 10.10.1
 ```
 
 And when Spring Boot Actuator is used with it, git.properties
