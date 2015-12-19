@@ -219,5 +219,9 @@ class FunctionalTest {
         assertFalse(manifestAttrs.containsKey('Git-Commit'))
         assertFalse(manifestAttrs.containsKey('Git-Committer-Date'))
         assertFalse(manifestAttrs.containsKey('Build-Date'))
+        assertFalse(manifestAttrs.containsKey('Build-Java-Version'))
+        assertFalse(manifestAttrs.containsKey('Build-Java-Vendor'))
+        assertFalse(manifestAttrs.containsKey('Build-Os-Name'))
+        assertFalse(manifestAttrs.containsKey('Build-Os-Version'))
     }
 }
