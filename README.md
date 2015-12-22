@@ -1,6 +1,7 @@
 # gradle-build-info-plugin
 
 [![Build Status](https://travis-ci.org/ksoichiro/gradle-build-info-plugin.svg?branch=master)](https://travis-ci.org/ksoichiro/gradle-build-info-plugin)
+[![Build status](https://ci.appveyor.com/api/projects/status/hluctgk9go2ov6id?svg=true)](https://ci.appveyor.com/project/ksoichiro/gradle-build-info-plugin)
 [![Coverage Status](https://coveralls.io/repos/ksoichiro/gradle-build-info-plugin/badge.svg?branch=master&service=github)](https://coveralls.io/github/ksoichiro/gradle-build-info-plugin?branch=master)
 [![Maven Central](http://img.shields.io/maven-central/v/com.github.ksoichiro/gradle-build-info-plugin.svg?style=flat)](https://github.com/ksoichiro/gradle-build-info-plugin/releases/latest)
 
