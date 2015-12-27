@@ -29,13 +29,13 @@ info endpoint.
 
 Then just build your project:
 
-```sh
+```console
 $ ./gradlew build
 ```
 
 Now your Manifest in JAR includes special attributes:
 
-```sh
+```console
 $ unzip -p build/libs/yourJar.jar META-INF/Manifest.MF
 Manifest-Version: 1.0
 Git-Branch: master
@@ -51,7 +51,7 @@ Build-Os-Version: 10.10.1
 And when Spring Boot Actuator is used with it, git.properties
 will be generated:
 
-```
+```console
 $ cat build/resources/main/git.properties
 git.branch=master
 git.commit.id=38a0c0c
