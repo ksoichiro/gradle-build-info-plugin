@@ -1,0 +1,27 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+def readVariables() {
+    Properties props = new Properties()
+    new File("${rootDir}/gradle/variables.properties").withInputStream {
+        stream -> props.load(stream)
+    }
+    props.each {
+        def name = it.key.replaceAll(/\./, '_').toUpperCase()
+        if (!ext.has("${name}")) {
+            ext."${name}" = it.value
+        }
+    }
+}
+readVariables()
+
+task version << {
+    println PLUGIN_VERSION
+}
+
+task updateReadme(type: Copy) {
+    from project.file("README.template.md")
+    into project.projectDir
+    rename { "README.md" }
+    def latestReleaseVersion = PLUGIN_VERSION.replaceAll('-SNAPSHOT', '')
+    filter(ReplaceTokens, tokens: [PLUGIN_VERSION: latestReleaseVersion])
+}

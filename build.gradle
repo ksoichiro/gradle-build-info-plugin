@@ -1,10 +1,230 @@
-allprojects {
+
+buildscript {
     repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
         mavenCentral()
     }
+    dependencies {
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
+    }
+}
 
-    apply plugin: 'idea'
-    apply plugin: 'java'
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
+plugins {
+    id 'maven'
+    id 'maven-publish'
+    id "com.jfrog.bintray" version "1.2"
+    id 'net.saliman.cobertura' version '2.2.8'
+    id 'com.github.kt3k.coveralls' version '2.3.1'
+}
+
+apply plugin: 'idea'
+apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'signing'
+apply plugin: 'com.gradle.plugin-publish'
+
+apply from: "${rootDir}/gradle/version.gradle"
+
+group = GROUP
+version = PLUGIN_VERSION
+archivesBaseName = POM_ARTIFACT_ID
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+task createClasspathManifest {
+    def outputDir = file("$buildDir/$name")
+
+    inputs.files sourceSets.main.runtimeClasspath
+    outputs.dir outputDir
+
+    doLast {
+        outputDir.mkdirs()
+        file("$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\n")
+    }
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile 'org.ajoberstar:grgit:1.4.1'
+    testRuntime files(createClasspathManifest)
+    testCompile gradleTestKit()
+    testCompile 'org.springframework.boot:spring-boot-starter-actuator:1.3.0.RELEASE'
+}
+
+cobertura {
+    coverageFormats = ['html', 'xml']
+}
+
+// To release:
+// ./gradlew clean assemble uploadArchives -Prelease
+def isReleaseBuild
+if (hasProperty("release")) {
+    isReleaseBuild = true
+}
+
+def sonatypeRepositoryUrl
+
+if (isReleaseBuild) {
+    if ("$version".endsWith('-SNAPSHOT')) {
+        println "SNAPSHOT BUILD $version"
+        sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+    } else {
+        println "RELEASE BUILD $version"
+        sonatypeRepositoryUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    }
+} else {
+    println "DEBUG BUILD $version"
+    sonatypeRepositoryUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+}
+
+// Note: These properties must be defined in ~/.gradle/gradle.properties
+// and signing.keyId, signing.password, signing.secretKeyRingFile, too.
+def username = hasProperty("nexusUsername") ? project.getProperty("nexusUsername") : ""
+def password = hasProperty("nexusPassword") ? project.getProperty("nexusPassword") : ""
+
+def bintrayUsername = hasProperty("bintrayUsername") ? project.getProperty("bintrayUsername") : ""
+def bintrayApiKey = hasProperty("bintrayApiKey") ? project.getProperty("bintrayApiKey") : ""
+
+install {
+    repositories.mavenInstaller {
+        pom.artifactId = POM_ARTIFACT_ID
+    }
+}
+
+afterEvaluate { project ->
+    uploadArchives {
+        if (isReleaseBuild) {
+            repositories {
+                mavenDeployer {
+                    beforeDeployment { deployment -> signing.signPom(deployment) }
+
+                    repository(url: sonatypeRepositoryUrl) {
+                        authentication(userName: username, password: password)
+                    }
+
+                    pom.project {
+                        name POM_NAME
+                        groupId GROUP
+                        description POM_DESCRIPTION
+                        url POM_URL
+                        inceptionYear POM_INCEPTION_YEAR
+
+                        scm {
+                            url POM_SCM_URL
+                            connection POM_SCM_CONNECTION
+                            developerConnection POM_SCM_DEV_CONNECTION
+                        }
+
+                        licenses {
+                            license {
+                                name POM_LICENSE_NAME
+                                url POM_LICENSE_URL
+                                distribution POM_LICENSE_DIST
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id POM_DEVELOPER_ID
+                                name POM_DEVELOPER_NAME
+                                url POM_DEVELOPER_URL
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // for development
+            repositories {
+                mavenDeployer {
+                    repository(url: uri('samples/repo'))
+                }
+            }
+        }
+    }
+
+    // Enable this closure when executing uploadArchives
+    signing {
+        required { isReleaseBuild && gradle.taskGraph.hasTask("uploadArchives") }
+        sign configurations.archives
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from groovydoc
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    publishing {
+        publications {
+            plugin(MavenPublication) {
+                groupId GROUP
+                artifactId POM_ARTIFACT_ID
+                version PLUGIN_VERSION
+
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+            }
+        }
+    }
+}
+
+bintray {
+    user = bintrayUsername
+    key = bintrayApiKey
+
+    publications = ['plugin']
+
+    pkg {
+        repo = 'maven'
+        name = POM_NAME
+        desc = POM_DESCRIPTION
+        websiteUrl = POM_URL
+        issueTrackerUrl = BINTRAY_ISSUE_TRACKER_URL
+        vcsUrl = BINTRAY_VCS_URL
+        licenses = ['Apache-2.0']
+        labels = ['build', 'git', 'java', 'spring-boot']
+        publicDownloadNumbers = true
+        version {
+            attributes = ['gradle-plugin': 'com.github.ksoichiro.build.info:com.github.ksoichiro:gradle-build-info-plugin']
+        }
+    }
+}
+
+pluginBundle {
+    website = POM_URL
+    vcsUrl = BINTRAY_VCS_URL
+
+    description = POM_DESCRIPTION
+
+    plugins {
+        plugin {
+            id = GRADLE_PLUGIN_ID
+            displayName = POM_NAME
+            tags = ['build', 'git', 'java', 'spring-boot']
+        }
+    }
+
+    mavenCoordinates {
+        artifactId = POM_ARTIFACT_ID
+    }
 }
