@@ -60,6 +60,10 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-actuator:1.3.0.RELEASE'
 }
 
+idea.module.excludeDirs += [
+    file('samples/repo'),
+]
+
 cobertura {
     coverageFormats = ['html', 'xml']
 }
