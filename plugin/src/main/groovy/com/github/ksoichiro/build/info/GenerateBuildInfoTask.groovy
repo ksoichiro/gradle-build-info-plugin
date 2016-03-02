@@ -92,14 +92,32 @@ class GenerateBuildInfoTask extends DefaultTask {
         def attributes = [:] as Map<String, ?>
         def gitInfo = readGitInfo()
 
-        attributes["Git-Branch"] = gitInfo.branch
-        attributes["Git-Commit"] = gitInfo.commit
-        attributes["Git-Committer-Date"] = gitInfo.committerDate
-        attributes["Build-Date"] = new Date().format(extension.buildDateFormat)
-        attributes["Build-Java-Version"] = System.properties['java.version']
-        attributes["Build-Java-Vendor"] = System.properties['java.vendor']
-        attributes["Build-Os-Name"] = System.properties['os.name']
-        attributes["Build-Os-Version"] = System.properties['os.version']
+        extension.with {
+            if (attributeGitBranchEnabled) {
+                attributes["Git-Branch"] = gitInfo.branch
+            }
+            if (attributeGitCommitEnabled) {
+                attributes["Git-Commit"] = gitInfo.commit
+            }
+            if (attributeGitCommitterDateEnabled) {
+                attributes["Git-Committer-Date"] = gitInfo.committerDate
+            }
+            if (attributeBuildDateEnabled) {
+                attributes["Build-Date"] = new Date().format(extension.buildDateFormat)
+            }
+            if (attributeBuildJavaVersionEnabled) {
+                attributes["Build-Java-Version"] = System.properties['java.version']
+            }
+            if (attributeBuildJavaVendorEnabled) {
+                attributes["Build-Java-Vendor"] = System.properties['java.vendor']
+            }
+            if (attributeBuildOsNameEnabled) {
+                attributes["Build-Os-Name"] = System.properties['os.name']
+            }
+            if (attributeBuildOsVersionEnabled) {
+                attributes["Build-Os-Version"] = System.properties['os.version']
+            }
+        }
 
         (project.tasks.jar as Jar).manifest {
             it.attributes(attributes)
