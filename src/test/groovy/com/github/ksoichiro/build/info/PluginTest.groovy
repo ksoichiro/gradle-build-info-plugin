@@ -99,7 +99,7 @@ class PluginTest {
     }
 
     @Test
-    void transitiveDepenendency() {
+    void transitiveDependency() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
