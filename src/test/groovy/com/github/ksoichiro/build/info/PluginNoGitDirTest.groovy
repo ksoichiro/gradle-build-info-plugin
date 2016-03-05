@@ -8,6 +8,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertTrue
+
 class PluginNoGitDirTest {
     private static final String PLUGIN_ID = 'com.github.ksoichiro.build.info'
 
@@ -40,10 +43,12 @@ class PluginNoGitDirTest {
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
         project.buildInfo {
+            gitPropertiesEnabled true
             gitInfoMode BuildInfoExtension.MODE_DEFAULT
         }
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+        assertTrue(project.file("${project.buildDir}/resources/main/git.properties").exists())
     }
 
     @Test
@@ -52,10 +57,12 @@ class PluginNoGitDirTest {
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
         project.buildInfo {
+            gitPropertiesEnabled true
             gitInfoMode BuildInfoExtension.MODE_IGNORE
         }
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
     }
 
     @Test(expected = GradleException)
@@ -64,6 +71,7 @@ class PluginNoGitDirTest {
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
         project.buildInfo {
+            gitPropertiesEnabled true
             gitInfoMode BuildInfoExtension.MODE_ERROR
         }
         project.evaluate()

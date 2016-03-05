@@ -8,6 +8,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
+import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
 
 class PluginTest {
@@ -59,6 +60,7 @@ class PluginTest {
         project.apply plugin: PLUGIN_ID
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
     }
 
     @Test
@@ -67,6 +69,7 @@ class PluginTest {
         project.apply plugin: PLUGIN_ID
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
     }
 
     @Test
@@ -96,6 +99,7 @@ class PluginTest {
         }
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
     }
 
     @Test
