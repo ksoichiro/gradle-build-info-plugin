@@ -2,4 +2,5 @@
 .idea/
 /build/
 *.iml
+*.swp
 samples/repo/
