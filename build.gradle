@@ -68,6 +68,8 @@ cobertura {
     coverageFormats = ['html', 'xml']
 }
 
+check.dependsOn 'cobertura'
+
 // To release:
 // ./gradlew clean assemble uploadArchives -Prelease
 def isReleaseBuild
