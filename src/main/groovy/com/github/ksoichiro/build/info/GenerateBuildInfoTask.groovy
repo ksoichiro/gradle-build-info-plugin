@@ -3,6 +3,7 @@ package com.github.ksoichiro.build.info
 import org.ajoberstar.grgit.Commit
 import org.ajoberstar.grgit.Grgit
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -47,11 +48,14 @@ class GenerateBuildInfoTask extends DefaultTask {
     }
 
     void generateGitProperties() {
+        def gitInfo = readGitInfo()
+        if (!gitInfo) {
+            return
+        }
         File buildResourcesDir = getProcessResourcesTask().destinationDir
         if (!buildResourcesDir.exists()) {
             buildResourcesDir.mkdirs()
         }
-        def gitInfo = readGitInfo()
         def map = [
             'git.branch'     : gitInfo.branch,
             'git.commit.id'  : gitInfo.commit,
@@ -93,14 +97,16 @@ class GenerateBuildInfoTask extends DefaultTask {
         def gitInfo = readGitInfo()
 
         extension.with {
-            if (attributeGitBranchEnabled) {
-                attributes["Git-Branch"] = gitInfo.branch
-            }
-            if (attributeGitCommitEnabled) {
-                attributes["Git-Commit"] = gitInfo.commit
-            }
-            if (attributeGitCommitterDateEnabled) {
-                attributes["Git-Committer-Date"] = gitInfo.committerDate
+            if (gitInfo) {
+                if (attributeGitBranchEnabled) {
+                    attributes["Git-Branch"] = gitInfo.branch
+                }
+                if (attributeGitCommitEnabled) {
+                    attributes["Git-Commit"] = gitInfo.commit
+                }
+                if (attributeGitCommitterDateEnabled) {
+                    attributes["Git-Committer-Date"] = gitInfo.committerDate
+                }
             }
             if (attributeBuildDateEnabled) {
                 attributes["Build-Date"] = new Date().format(extension.buildDateFormat)
@@ -135,9 +141,18 @@ class GenerateBuildInfoTask extends DefaultTask {
             commit = head.abbreviatedId
             committerDate = head.date.format(extension.committerDateFormat)
         } catch (ignored) {
-            branch = "unknown"
-            commit = "unknown"
-            committerDate = "unknown"
+            switch (extension.gitInfoMode) {
+                case BuildInfoExtension.MODE_ERROR:
+                    throw new GradleException("Cannot read .git directory.")
+                case BuildInfoExtension.MODE_IGNORE:
+                    return null
+                case BuildInfoExtension.MODE_DEFAULT:
+                default:
+                    branch = "unknown"
+                    commit = "unknown"
+                    committerDate = "unknown"
+                    break
+            }
         }
         new GitInfo(branch: branch,
             commit: commit,
