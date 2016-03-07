@@ -13,7 +13,7 @@ Apply plugin:
 
 ```gradle
 plugins {
-    id 'com.github.ksoichiro.build.info' version '0.1.3'
+    id 'com.github.ksoichiro.build.info' version '0.1.4'
 }
 ```
 
