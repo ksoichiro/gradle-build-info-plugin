@@ -78,6 +78,31 @@ buildInfo {
     // and you don't set this property explicitly to false,
     // git.properties will be generated.
     gitPropertiesEnabled false
+
+    // Behavior when the plugin cannot read .git directory.
+    // Set to MODE_IGNORE if you want to ignore it and proceed task.
+    // Set to MODE_ERROR if you want to throw an exception to stop build.
+    // Default is MODE_DEFAULT.
+    // MODE_DEFAULT will set the values of branch, commit,
+    // and committer date to "unknown", then proceed task.
+    gitInfoMode com.github.ksoichiro.build.info.BuildInfoExtension.MODE_DEFAULT
+
+    // Set to false if you want to suppress log when .git directory
+    // cannot be read.
+    // Default is true.
+    warnIfGitDirectoryIsMissing false
+
+    // Set to false if you want to exclude some attributes
+    // from the manifest file.
+    // All properties are true by default.
+    attributeGitBranchEnabled false
+    attributeGitCommitEnabled false
+    attributeGitCommitterDateEnabled false
+    attributeBuildDateEnabled false
+    attributeBuildJavaVersionEnabled false
+    attributeBuildJavaVendorEnabled false
+    attributeBuildOsNameEnabled false
+    attributeBuildOsVersionEnabled false
 }
 ```
 
