@@ -49,7 +49,10 @@ class GenerateBuildInfoTask extends DefaultTask {
 
     void generateGitProperties() {
         def gitInfo = readGitInfo()
-        if (!gitInfo) {
+        if (gitInfo.missing && extension.warnIfGitDirectoryIsMissing) {
+            logger.warn "Could not read .git directory. git.properties will not be generated or will include invalid values."
+        }
+        if (!gitInfo.valid) {
             return
         }
         File buildResourcesDir = getProcessResourcesTask().destinationDir
@@ -97,7 +100,10 @@ class GenerateBuildInfoTask extends DefaultTask {
         def gitInfo = readGitInfo()
 
         extension.with {
-            if (gitInfo) {
+            if (gitInfo.missing && extension.warnIfGitDirectoryIsMissing) {
+                logger.warn "Could not read .git directory. Git info will not be included in the manifest or will be replaced to invalid values."
+            }
+            if (gitInfo.valid) {
                 if (attributeGitBranchEnabled) {
                     attributes["Git-Branch"] = gitInfo.branch
                 }
@@ -131,9 +137,11 @@ class GenerateBuildInfoTask extends DefaultTask {
     }
 
     GitInfo readGitInfo() {
-        def branch
-        def commit
-        def committerDate
+        def missing = false
+        def valid = true
+        def branch = null
+        def commit = null
+        def committerDate = null
         try {
             Grgit grgit = Grgit.open(currentDir: project.projectDir)
             branch = grgit.branch.current.name
@@ -141,11 +149,13 @@ class GenerateBuildInfoTask extends DefaultTask {
             commit = head.abbreviatedId
             committerDate = head.date.format(extension.committerDateFormat)
         } catch (ignored) {
+            missing = true
             switch (extension.gitInfoMode) {
                 case BuildInfoExtension.MODE_ERROR:
                     throw new GradleException("Cannot read .git directory.")
                 case BuildInfoExtension.MODE_IGNORE:
-                    return null
+                    valid = false
+                    break
                 case BuildInfoExtension.MODE_DEFAULT:
                 default:
                     branch = "unknown"
@@ -154,7 +164,9 @@ class GenerateBuildInfoTask extends DefaultTask {
                     break
             }
         }
-        new GitInfo(branch: branch,
+        new GitInfo(missing: missing,
+            valid: valid,
+            branch: branch,
             commit: commit,
             committerDate: committerDate)
     }

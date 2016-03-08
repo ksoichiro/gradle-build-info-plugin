@@ -28,6 +28,7 @@ class BuildInfoExtension {
     boolean manifestEnabled = true
     boolean gitPropertiesEnabled = false
     int gitInfoMode = MODE_DEFAULT
+    boolean warnIfGitDirectoryIsMissing = true
     boolean attributeGitBranchEnabled = true
     boolean attributeGitCommitEnabled = true
     boolean attributeGitCommitterDateEnabled = true
