@@ -1,11 +1,12 @@
 # gradle-build-info-plugin
 
-[![Build Status](https://travis-ci.org/ksoichiro/gradle-build-info-plugin.svg?branch=master)](https://travis-ci.org/ksoichiro/gradle-build-info-plugin)
-[![Build status](https://ci.appveyor.com/api/projects/status/hluctgk9go2ov6id?svg=true)](https://ci.appveyor.com/project/ksoichiro/gradle-build-info-plugin)
-[![Coverage Status](https://coveralls.io/repos/ksoichiro/gradle-build-info-plugin/badge.svg?branch=master&service=github)](https://coveralls.io/github/ksoichiro/gradle-build-info-plugin?branch=master)
-[![Maven Central](http://img.shields.io/maven-central/v/com.github.ksoichiro/gradle-build-info-plugin.svg?style=flat)](https://github.com/ksoichiro/gradle-build-info-plugin/releases/latest)
+[![Build Status](https://img.shields.io/travis/ksoichiro/gradle-build-info-plugin/master.svg?style=flat-square)](https://travis-ci.org/ksoichiro/gradle-build-info-plugin)
+[![Build status](https://img.shields.io/appveyor/ci/ksoichiro/gradle-build-info-plugin/master.svg?style=flat-square)](https://ci.appveyor.com/project/ksoichiro/gradle-build-info-plugin)
+[![Coverage Stagus](https://img.shields.io/coveralls/ksoichiro/gradle-build-info-plugin/master.svg?style=flat-square)](https://coveralls.io/github/ksoichiro/gradle-build-info-plugin?branch=master)
+[![Bintray](https://img.shields.io/bintray/v/ksoichiro/maven/gradle-build-info-plugin.svg?style=flat-square)](https://bintray.com/ksoichiro/maven/gradle-build-info-plugin/_latestVersion)
+[![Maven Central](http://img.shields.io/maven-central/v/com.github.ksoichiro/gradle-build-info-plugin.svg?style=flat-square)](https://github.com/ksoichiro/gradle-build-info-plugin/releases/latest)
 
-Gradle plugin to include build information such as Git commit ID to your JAR.
+> Gradle plugin to include build information such as Git commit ID to your JAR.
 
 ## Usage
 
