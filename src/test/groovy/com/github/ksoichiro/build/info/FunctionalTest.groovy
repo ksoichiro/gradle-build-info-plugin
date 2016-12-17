@@ -224,4 +224,172 @@ class FunctionalTest {
         assertFalse(manifestAttrs.containsKey('Build-Os-Name'))
         assertFalse(manifestAttrs.containsKey('Build-Os-Version'))
     }
+
+    @Test
+    public void upToDateWhenCommitIdDoesNotChange() {
+        def buildFileContent = """\
+            |plugins {
+            |    id '${PLUGIN_ID}'
+            |}
+            |apply plugin: 'java'
+            |buildInfo {
+            |    gitPropertiesEnabled true
+            |}
+            |""".stripMargin().stripIndent()
+        buildFile.text = buildFileContent
+
+        def result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+
+        result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.UP_TO_DATE)
+
+        // Removing output causes build
+        new File("${rootDir}/build/resources/main/git.properties").delete()
+
+        result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+    }
+
+    @Test
+    public void doNotSkipWhenCommitIdChanges() {
+        def buildFileContent = """\
+            |plugins {
+            |    id '${PLUGIN_ID}'
+            |}
+            |apply plugin: 'java'
+            |buildInfo {
+            |    gitPropertiesEnabled true
+            |}
+            |""".stripMargin().stripIndent()
+        buildFile.text = buildFileContent
+
+        def result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        println "1st"
+        println new File("${rootDir}/build/resources/main/git.properties").text
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+
+        new File(rootDir, "README.md").text = """\
+            |# Test
+            |""".stripMargin().stripIndent()
+        grgit.add(patterns: ['README.md'])
+        grgit.commit(message: 'Add readme')
+
+        result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        println "2nd"
+        println new File("${rootDir}/build/resources/main/git.properties").text
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+    }
+
+    @Test
+    public void skipWhenAllOfTheFeaturesAreDisabled() {
+        def buildFileContent = """\
+            |plugins {
+            |    id '${PLUGIN_ID}'
+            |}
+            |apply plugin: 'java'
+            |buildInfo {
+            |    gitPropertiesEnabled false
+            |    manifestEnabled false
+            |}
+            |""".stripMargin().stripIndent()
+        buildFile.text = buildFileContent
+
+        def result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        println result.output
+        // Throwing StopExecutionException results in SUCCESS (not SKIPPED or UP_TO_DATE)
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+    }
+
+    @Test
+    public void skipWhenGitStatusIsDirtyAndSomethingChanges() {
+        def buildFileContent = """\
+            |plugins {
+            |    id '${PLUGIN_ID}'
+            |}
+            |apply plugin: 'java'
+            |buildInfo {
+            |    gitPropertiesEnabled true
+            |}
+            |""".stripMargin().stripIndent()
+        buildFile.text = buildFileContent
+
+        // Make working copy dirty
+        new File(rootDir, "README.md").text = """\
+            |# Test
+            |""".stripMargin().stripIndent()
+
+        def result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        println "1st"
+        println new File("${rootDir}/build/resources/main/git.properties").text
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+
+        // Update dirty working copy
+        new File(rootDir, "README.md").text = """\
+            |# Test
+            |
+            |This is a test.
+            |""".stripMargin().stripIndent()
+
+        result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        // Even when some files are changed, it is assumed to be up-to-date because the commit does not change
+        println "2nd"
+        println new File("${rootDir}/build/resources/main/git.properties").text
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.UP_TO_DATE)
+
+        // Commit causes build
+        grgit.add(patterns: ['README.md'])
+        grgit.commit(message: 'Add readme')
+
+        result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments(GenerateBuildInfoTask.NAME)
+            .withPluginClasspath(pluginClasspath)
+            .build()
+
+        // Even when some files are changed, it is assumed to be up-to-date because the commit does not change
+        println "3rd"
+        println new File("${rootDir}/build/resources/main/git.properties").text
+        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+    }
 }

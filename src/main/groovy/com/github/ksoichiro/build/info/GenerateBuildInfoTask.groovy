@@ -71,7 +71,7 @@ class GenerateBuildInfoTask extends DefaultTask {
     }
 
     void generateGitProperties() {
-        if (!extension.gitPropertiesEnabled && !hasDependency) {
+        if (!shouldGenerateGitProperties()) {
             return
         }
         if (gitInfo.missing && extension.warnIfGitDirectoryIsMissing) {
@@ -119,7 +119,7 @@ class GenerateBuildInfoTask extends DefaultTask {
     }
 
     void mergeManifest() {
-        if (!project.plugins.hasPlugin(JavaPlugin) || !extension.manifestEnabled) {
+        if (!shouldMergeManifest()) {
             return
         }
 
@@ -191,7 +191,7 @@ class GenerateBuildInfoTask extends DefaultTask {
 
     def validate() {
         // If all options are disabled, skip this task not to cache the result
-        if (!extension.gitPropertiesEnabled && !hasDependency && !extension.manifestEnabled) {
+        if (!shouldGenerateGitProperties() && !shouldMergeManifest()) {
             throw new StopExecutionException()
         }
         if (gitInfo.missing) {
@@ -204,6 +204,14 @@ class GenerateBuildInfoTask extends DefaultTask {
                     break
             }
         }
+    }
+
+    boolean shouldGenerateGitProperties() {
+        extension.gitPropertiesEnabled || hasDependency
+    }
+
+    boolean shouldMergeManifest() {
+        project.plugins.hasPlugin(JavaPlugin) && extension.manifestEnabled
     }
 
     static boolean hasDependency(Project project, String group, String name) {
