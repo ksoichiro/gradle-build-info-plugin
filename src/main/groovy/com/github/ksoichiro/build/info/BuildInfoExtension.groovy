@@ -37,4 +37,5 @@ class BuildInfoExtension {
     boolean attributeBuildJavaVendorEnabled = true
     boolean attributeBuildOsNameEnabled = true
     boolean attributeBuildOsVersionEnabled = true
+    File destinationDir
 }

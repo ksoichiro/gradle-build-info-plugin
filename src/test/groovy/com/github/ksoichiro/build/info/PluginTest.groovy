@@ -2,10 +2,12 @@ package com.github.ksoichiro.build.info
 
 import org.ajoberstar.grgit.Grgit
 import org.gradle.api.Project
+import org.gradle.api.ProjectConfigurationException
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExpectedException
 import org.junit.rules.TemporaryFolder
 
 import static org.junit.Assert.assertFalse
@@ -16,6 +18,10 @@ class PluginTest {
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder()
+
+    @Rule
+    public final ExpectedException expectedException = ExpectedException.none()
+
     File rootDir
     Grgit grgit
 
@@ -55,7 +61,7 @@ class PluginTest {
 
     @Test
     void generateWithJavaPlugin() {
-        Project project = ProjectBuilder.builder().withProjectDir(rootDir)build()
+        Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
         project.evaluate()
@@ -64,12 +70,39 @@ class PluginTest {
     }
 
     @Test
+    void generateWithJavaPluginAndEnabled() {
+        Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
+        project.apply plugin: 'java'
+        project.apply plugin: PLUGIN_ID
+        project.buildInfo {
+            gitPropertiesEnabled true
+        }
+        project.evaluate()
+        project.tasks.generateBuildInfo.execute()
+        assertTrue(project.file("${project.buildDir}/resources/main/git.properties").exists())
+    }
+
+    @Test
     void generateWithoutJavaPlugin() {
-        Project project = ProjectBuilder.builder().build()
+        expectedException.expect(ProjectConfigurationException)
+        Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: PLUGIN_ID
         project.evaluate()
         project.tasks.generateBuildInfo.execute()
+    }
+
+    @Test
+    void generateWithoutJavaPluginAndEnabledAndSetAnotherDestination() {
+        Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
+        project.apply plugin: PLUGIN_ID
+        project.buildInfo {
+            gitPropertiesEnabled true
+            destinationDir project.file("${project.buildDir}/foo/bar/")
+        }
+        project.evaluate()
+        project.tasks.generateBuildInfo.execute()
         assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
+        assertTrue(project.file("${project.buildDir}/foo/bar/git.properties").exists())
     }
 
     @Test
