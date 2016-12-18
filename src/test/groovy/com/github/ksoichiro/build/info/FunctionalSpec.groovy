@@ -1,18 +1,16 @@
 package com.github.ksoichiro.build.info
 
 import org.ajoberstar.grgit.Grgit
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
 
 import java.util.jar.JarFile
 
-import static org.junit.Assert.*
-
-class FunctionalTest {
+class FunctionalSpec extends Specification {
     private static final String PLUGIN_ID = 'com.github.ksoichiro.build.info'
 
     @Rule
@@ -22,8 +20,7 @@ class FunctionalTest {
     List<File> pluginClasspath
     Grgit grgit
 
-    @Before
-    void setup() {
+    def setup() {
         rootDir = testProjectDir.root
         if (!rootDir.exists()) {
             rootDir.mkdir()
@@ -58,8 +55,8 @@ class FunctionalTest {
         grgit.commit(message: 'Initial commit.')
     }
 
-    @Test
-    public void generateBuildInfo() {
+    def generateBuildInfo() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -69,23 +66,18 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments("build")
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = runBuild()
 
-        assertEquals(result.task(":build").getOutcome(), TaskOutcome.SUCCESS)
-
+        then:
+        result.task(":build").getOutcome() == TaskOutcome.SUCCESS
         File jarFile = new File("${rootDir}/build/libs/foo.jar")
-        assertTrue(jarFile.exists())
-        JarFile jar = new JarFile(jarFile)
-        def manifestAttrs = jar.manifest.mainAttributes
-        assertEquals(grgit.head().abbreviatedId, manifestAttrs.getValue('Git-Commit'))
+        jarFile.exists()
+        new JarFile(jarFile).manifest.mainAttributes.getValue('Git-Commit') == grgit.head().abbreviatedId
     }
 
-    @Test
-    public void gitPropertiesEnabled() {
+    def gitPropertiesEnabled() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -97,25 +89,26 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments("build")
-            .withPluginClasspath(pluginClasspath)
-            .build()
-
-        assertEquals(result.task(":build").getOutcome(), TaskOutcome.SUCCESS)
-
+        when:
+        def result = runBuild()
         File propsFile = new File("${rootDir}/build/resources/main/git.properties")
-        assertTrue(propsFile.exists())
+
+        then:
+        result.task(":build").getOutcome() == TaskOutcome.SUCCESS
+        propsFile.exists()
+
+        when:
         Properties props = new Properties()
         props.load(propsFile.newReader())
-        assertEquals(grgit.branch.current.name, props.get('git.branch'))
-        assertEquals(grgit.head().abbreviatedId, props.get('git.commit.id'))
-        assertEquals(grgit.head().date.format('yyyy-MM-dd HH:mm:ss Z'), props.get('git.commit.time'))
+
+        then:
+        grgit.branch.current.name == props.get('git.branch')
+        grgit.head().abbreviatedId == props.get('git.commit.id')
+        grgit.head().date.format('yyyy-MM-dd HH:mm:ss Z') == props.get('git.commit.time')
     }
 
-    @Test
-    public void gitPropertiesDisabled() {
+    def gitPropertiesDisabled() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -127,20 +120,18 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments("build")
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = runBuild()
 
-        assertEquals(result.task(":build").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":build").getOutcome() == TaskOutcome.SUCCESS
 
         File propsFile = new File("${rootDir}/build/resources/main/git.properties")
-        assertFalse(propsFile.exists())
+        !propsFile.exists()
     }
 
-    @Test
-    public void gitPropertiesDisabledAsDefault() {
+    def gitPropertiesDisabledAsDefault() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -149,20 +140,18 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments("build")
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = runBuild()
 
-        assertEquals(result.task(":build").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":build").getOutcome() == TaskOutcome.SUCCESS
 
         File propsFile = new File("${rootDir}/build/resources/main/git.properties")
-        assertFalse(propsFile.exists())
+        !propsFile.exists()
     }
 
-    @Test
-    public void gitPropertiesEnabledWhenSpringBootActuatorIsUsed() {
+    def gitPropertiesEnabledWhenSpringBootActuatorIsUsed() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -177,20 +166,18 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments("build")
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = runBuild()
 
-        assertEquals(result.task(":build").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":build").getOutcome() == TaskOutcome.SUCCESS
 
         File propsFile = new File("${rootDir}/build/resources/main/git.properties")
-        assertTrue(propsFile.exists())
+        propsFile.exists()
     }
 
-    @Test
-    public void manifestDisabled() {
+    def manifestDisabled() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -203,30 +190,28 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments("build")
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = runBuild()
 
-        assertEquals(result.task(":build").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":build").getOutcome() == TaskOutcome.SUCCESS
 
         File jarFile = new File("${rootDir}/build/libs/foo.jar")
-        assertTrue(jarFile.exists())
+        jarFile.exists()
         JarFile jar = new JarFile(jarFile)
         def manifestAttrs = jar.manifest.mainAttributes
-        assertFalse(manifestAttrs.containsKey('Git-Branch'))
-        assertFalse(manifestAttrs.containsKey('Git-Commit'))
-        assertFalse(manifestAttrs.containsKey('Git-Committer-Date'))
-        assertFalse(manifestAttrs.containsKey('Build-Date'))
-        assertFalse(manifestAttrs.containsKey('Build-Java-Version'))
-        assertFalse(manifestAttrs.containsKey('Build-Java-Vendor'))
-        assertFalse(manifestAttrs.containsKey('Build-Os-Name'))
-        assertFalse(manifestAttrs.containsKey('Build-Os-Version'))
+        !manifestAttrs.containsKey('Git-Branch')
+        !manifestAttrs.containsKey('Git-Commit')
+        !manifestAttrs.containsKey('Git-Committer-Date')
+        !manifestAttrs.containsKey('Build-Date')
+        !manifestAttrs.containsKey('Build-Java-Version')
+        !manifestAttrs.containsKey('Build-Java-Vendor')
+        !manifestAttrs.containsKey('Build-Os-Name')
+        !manifestAttrs.containsKey('Build-Os-Version')
     }
 
-    @Test
-    public void upToDateWhenCommitIdDoesNotChange() {
+    def upToDateWhenCommitIdDoesNotChange() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -238,36 +223,29 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = run('1st')
 
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.SUCCESS
 
-        result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        result = run('2nd')
 
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.UP_TO_DATE)
+        then:
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.UP_TO_DATE
 
+        when:
         // Removing output causes build
         new File("${rootDir}/build/resources/main/git.properties").delete()
+        result = run('3rd')
 
-        result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
-
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.SUCCESS
     }
 
-    @Test
-    public void doNotSkipWhenCommitIdChanges() {
+    def doNotSkipWhenCommitIdChanges() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -279,35 +257,26 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = run('1st')
 
-        println "1st"
-        println new File("${rootDir}/build/resources/main/git.properties").text
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.SUCCESS
 
+        when:
         new File(rootDir, "README.md").text = """\
             |# Test
             |""".stripMargin().stripIndent()
         grgit.add(patterns: ['README.md'])
         grgit.commit(message: 'Add readme')
+        result = run('2nd')
 
-        result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
-
-        println "2nd"
-        println new File("${rootDir}/build/resources/main/git.properties").text
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.SUCCESS
     }
 
-    @Test
-    public void skipWhenAllOfTheFeaturesAreDisabled() {
+    def skipWhenAllOfTheFeaturesAreDisabled() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -320,19 +289,16 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        when:
+        def result = run('1st')
 
-        println result.output
+        then:
         // Throwing StopExecutionException results in SUCCESS (not SKIPPED or UP_TO_DATE)
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.SUCCESS
     }
 
-    @Test
-    public void skipWhenGitStatusIsDirtyAndSomethingChanges() {
+    def skipWhenGitStatusIsDirtyAndSomethingChanges() {
+        setup:
         def buildFileContent = """\
             |plugins {
             |    id '${PLUGIN_ID}'
@@ -344,21 +310,18 @@ class FunctionalTest {
             |""".stripMargin().stripIndent()
         buildFile.text = buildFileContent
 
+        when:
         // Make working copy dirty
         new File(rootDir, "README.md").text = """\
             |# Test
             |""".stripMargin().stripIndent()
 
-        def result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        def result = run('1st')
 
-        println "1st"
-        println new File("${rootDir}/build/resources/main/git.properties").text
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+        then:
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.SUCCESS
 
+        when:
         // Update dirty working copy
         new File(rootDir, "README.md").text = """\
             |# Test
@@ -366,30 +329,45 @@ class FunctionalTest {
             |This is a test.
             |""".stripMargin().stripIndent()
 
-        result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withArguments(GenerateBuildInfoTask.NAME)
-            .withPluginClasspath(pluginClasspath)
-            .build()
+        result = run('2nd')
 
+        then:
         // Even when some files are changed, it is assumed to be up-to-date because the commit does not change
-        println "2nd"
-        println new File("${rootDir}/build/resources/main/git.properties").text
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.UP_TO_DATE)
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.UP_TO_DATE
 
+        when:
         // Commit causes build
         grgit.add(patterns: ['README.md'])
         grgit.commit(message: 'Add readme')
+        result = run('3rd')
 
-        result = GradleRunner.create()
+        then:
+        // Even when some files are changed, it is assumed to be up-to-date because the commit does not change
+        result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.SUCCESS
+    }
+
+    BuildResult runBuild() {
+        GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withArguments('build')
+            .withPluginClasspath(pluginClasspath)
+            .build()
+    }
+
+    BuildResult run(def label) {
+        BuildResult result = GradleRunner.create()
             .withProjectDir(rootDir)
             .withArguments(GenerateBuildInfoTask.NAME)
             .withPluginClasspath(pluginClasspath)
             .build()
 
-        // Even when some files are changed, it is assumed to be up-to-date because the commit does not change
-        println "3rd"
-        println new File("${rootDir}/build/resources/main/git.properties").text
-        assertEquals(result.task(":${GenerateBuildInfoTask.NAME}").getOutcome(), TaskOutcome.SUCCESS)
+        if (label) {
+            println label
+        }
+        File props = new File("${rootDir}/build/resources/main/git.properties")
+        if (props.exists()) {
+            println props.text
+        }
+        result
     }
 }
