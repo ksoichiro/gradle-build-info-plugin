@@ -236,8 +236,8 @@ class FunctionalSpec extends Specification {
         result.task(":${GenerateBuildInfoTask.NAME}").getOutcome() == TaskOutcome.UP_TO_DATE
 
         when:
-        // Removing output causes build
-        new File("${rootDir}/build/resources/main/git.properties").delete()
+        // Changing output causes build (removing file does not work on Windows...)
+        new File("${rootDir}/build/resources/main/git.properties").canonicalFile.text += "\ntest"
         result = run('3rd')
 
         then:
