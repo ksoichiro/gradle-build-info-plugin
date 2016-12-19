@@ -14,7 +14,7 @@ Apply plugin:
 
 ```gradle
 plugins {
-    id 'com.github.ksoichiro.build.info' version '0.1.5'
+    id 'com.github.ksoichiro.build.info' version '0.2.0'
 }
 ```
 
