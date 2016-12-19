@@ -3,15 +3,11 @@ package com.github.ksoichiro.build.info
 import org.ajoberstar.grgit.Grgit
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertTrue
-
-class MultiProjectFunctionalTest {
+class MultiProjectFunctionalSpec extends Specification {
     private static final String PLUGIN_ID = 'com.github.ksoichiro.build.info'
 
     @Rule
@@ -26,8 +22,7 @@ class MultiProjectFunctionalTest {
     List<File> pluginClasspath
     Grgit grgit
 
-    @Before
-    void setup() {
+    def setup() {
         rootDir = testProjectDir.root
         rootDir.mkdirs()
         libDir = new File(rootDir, "library")
@@ -98,17 +93,17 @@ class MultiProjectFunctionalTest {
         grgit.commit(message: 'Initial commit.')
     }
 
-    @Test
-    void springBootActuatorInTransitiveDependency() {
+    def springBootActuatorInTransitiveDependency() {
+        when:
         def result = GradleRunner.create()
             .withProjectDir(rootDir)
             .withArguments("build")
             .withPluginClasspath(pluginClasspath)
             .build()
-
-        assertEquals(result.task(":build").getOutcome(), TaskOutcome.SUCCESS)
-
         File propsFile = new File("${appDir}/build/resources/main/git.properties")
-        assertTrue(propsFile.exists())
+
+        then:
+        result.task(":build").getOutcome() == TaskOutcome.SUCCESS
+        propsFile.exists()
     }
 }

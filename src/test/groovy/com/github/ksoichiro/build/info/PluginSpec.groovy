@@ -4,29 +4,20 @@ import org.ajoberstar.grgit.Grgit
 import org.gradle.api.Project
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.ExpectedException
 import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
 
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
-
-class PluginTest {
+class PluginSpec extends Specification {
     private static final String PLUGIN_ID = 'com.github.ksoichiro.build.info'
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder()
 
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none()
-
     File rootDir
     Grgit grgit
 
-    @Before
-    void setup() {
+    def setup() {
         rootDir = testProjectDir.root
         if (!rootDir.exists()) {
             rootDir.mkdir()
@@ -51,26 +42,33 @@ class PluginTest {
         grgit.commit(message: 'Initial commit.')
     }
 
-    @Test
-    void apply() {
+    def apply() {
+        setup:
         Project project = ProjectBuilder.builder().build()
+
+        when:
         project.apply plugin: PLUGIN_ID
 
-        assertTrue(project.tasks.generateBuildInfo instanceof GenerateBuildInfoTask)
+        then:
+        project.tasks.generateBuildInfo instanceof GenerateBuildInfoTask
     }
 
-    @Test
-    void generateWithJavaPlugin() {
+    def generateWithJavaPlugin() {
+        setup:
         Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
-        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
+
+        then:
+        !project.file("${project.buildDir}/resources/main/git.properties").exists()
     }
 
-    @Test
-    void generateWithJavaPluginAndEnabled() {
+    def generateWithJavaPluginAndEnabled() {
+        setup:
         Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
@@ -78,21 +76,28 @@ class PluginTest {
             gitPropertiesEnabled true
         }
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
-        assertTrue(project.file("${project.buildDir}/resources/main/git.properties").exists())
+
+        then:
+        project.file("${project.buildDir}/resources/main/git.properties").exists()
     }
 
-    @Test
-    void generateWithoutJavaPlugin() {
-        expectedException.expect(ProjectConfigurationException)
+    def generateWithoutJavaPlugin() {
+        setup:
         Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: PLUGIN_ID
+
+        when:
         project.evaluate()
-        project.tasks.generateBuildInfo.execute()
+
+        then:
+        thrown(ProjectConfigurationException)
     }
 
-    @Test
-    void generateWithoutJavaPluginAndEnabledAndSetAnotherDestination() {
+    def generateWithoutJavaPluginAndEnabledAndSetAnotherDestination() {
+        setup:
         Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: PLUGIN_ID
         project.buildInfo {
@@ -100,13 +105,17 @@ class PluginTest {
             destinationDir project.file("${project.buildDir}/foo/bar/")
         }
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
-        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
-        assertTrue(project.file("${project.buildDir}/foo/bar/git.properties").exists())
+
+        then:
+        !project.file("${project.buildDir}/resources/main/git.properties").exists()
+        project.file("${project.buildDir}/foo/bar/git.properties").exists()
     }
 
-    @Test
-    void generateWithJavaPluginAndSpringBootActuator() {
+    def generateWithJavaPluginAndSpringBootActuator() {
+        setup:
         Project project = ProjectBuilder.builder().withProjectDir(rootDir).build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
@@ -117,12 +126,16 @@ class PluginTest {
             compile 'org.springframework.boot:spring-boot-starter-actuator:1.3.0.RELEASE'
         }
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
-        assertTrue(project.file("${project.buildDir}/resources/main/git.properties").exists())
+
+        then:
+        project.file("${project.buildDir}/resources/main/git.properties").exists()
     }
 
-    @Test
-    void configureExtension() {
+    def configureExtension() {
+        setup:
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
@@ -131,12 +144,16 @@ class PluginTest {
             committerDateFormat 'yyyy-MM-dd'
         }
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
-        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
+
+        then:
+        !project.file("${project.buildDir}/resources/main/git.properties").exists()
     }
 
-    @Test
-    void transitiveDependency() {
+    def transitiveDependency() {
+        setup:
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
@@ -146,7 +163,11 @@ class PluginTest {
         project.dependencies {
             compile 'org.springframework.boot:spring-boot-starter-actuator:1.3.0.RELEASE'
         }
+
+        when:
         project.evaluate()
-        assertTrue(GenerateBuildInfoTask.hasDependency(project, 'org.springframework', 'spring-core'))
+
+        then:
+        GenerateBuildInfoTask.hasDependency(project, 'org.springframework', 'spring-core')
     }
 }

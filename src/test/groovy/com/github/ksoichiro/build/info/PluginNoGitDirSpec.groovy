@@ -3,23 +3,18 @@ package com.github.ksoichiro.build.info
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Before
 import org.junit.Rule
-import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
 
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
-
-class PluginNoGitDirTest {
+class PluginNoGitDirSpec extends Specification {
     private static final String PLUGIN_ID = 'com.github.ksoichiro.build.info'
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder()
     File rootDir
 
-    @Before
-    void setup() {
+    def setup() {
         rootDir = testProjectDir.root
         if (!rootDir.exists()) {
             rootDir.mkdir()
@@ -37,8 +32,8 @@ class PluginNoGitDirTest {
             |""".stripMargin().stripIndent()
     }
 
-    @Test
-    void setDefaultStringIfGitInfoDoesNotExist() {
+    def setDefaultStringIfGitInfoDoesNotExist() {
+        setup:
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
@@ -47,12 +42,16 @@ class PluginNoGitDirTest {
             gitInfoMode BuildInfoExtension.MODE_DEFAULT
         }
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
-        assertTrue(project.file("${project.buildDir}/resources/main/git.properties").exists())
+
+        then:
+        project.file("${project.buildDir}/resources/main/git.properties").exists()
     }
 
-    @Test
-    void ignoreIfGitInfoDoesNotExist() {
+    def ignoreIfGitInfoDoesNotExist() {
+        setup:
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
@@ -61,12 +60,16 @@ class PluginNoGitDirTest {
             gitInfoMode BuildInfoExtension.MODE_IGNORE
         }
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
-        assertFalse(project.file("${project.buildDir}/resources/main/git.properties").exists())
+
+        then:
+        !project.file("${project.buildDir}/resources/main/git.properties").exists()
     }
 
-    @Test(expected = GradleException)
-    void throwExceptionIfGitInfoDoesNotExist() {
+    def throwExceptionIfGitInfoDoesNotExist() {
+        setup:
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: PLUGIN_ID
@@ -75,6 +78,11 @@ class PluginNoGitDirTest {
             gitInfoMode BuildInfoExtension.MODE_ERROR
         }
         project.evaluate()
+
+        when:
         project.tasks.generateBuildInfo.execute()
+
+        then:
+        thrown(GradleException)
     }
 }
